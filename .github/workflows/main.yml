@@ -1,20 +1,20 @@
-name: GitHub CI
-on:
-  push:
-    branches: [master]
-  workflow_dispatch:
-  pull_request:
 
-concurrency:
-  group: ${{ github.ref }}-${{ github.workflow }}
-  cancel-in-progress: true
-  
+name: build
+
+on:
+  release:
+    types: [created] # 表示在创建新的 Release 时触发
+
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build-go-binary:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux, windows, darwin] # 需要打包的系统
+        goos: [linux, windows, darwin, freebsd] # 需要打包的系统
         goarch: [amd64, arm64, arm, mips, mips64, mips64le, mipsle, 386] # 需要打包的架构
         exclude: # 排除某些平台和架构
           - goarch: arm64
@@ -55,6 +55,21 @@ jobs:
           - goarch: mipsle
             goos: android
 
+          - goarch: mips
+            goos: freebsd
+          - goarch: mips64
+            goos: freebsd
+          - goarch: mips64le
+            goos: freebsd
+          - goarch: mipsle
+            goos: freebsd
+          - goarch: mipsle
+            goos: freebsd
+          - goarch: arm
+            goos: freebsd
+          - goarch: arm64
+            goos: freebsd
+
     steps:
       - uses: actions/checkout@v3
       - uses: wangyoucao577/go-release-action@v1
@@ -63,6 +78,6 @@ jobs:
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           goversion: 1.21 # 可以指定编译使用的 Golang 版本
-          binary_name: "iptest" # 可以指定二进制文件的名称
+          binary_name: "cfiptest" # 可以指定二进制文件的名称
           ldflags: -s -w -X "main.version=${{ github.ref_name }}"
           md5sum: false
